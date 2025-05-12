@@ -301,7 +301,7 @@ elif auth_status:
                     path = path.replace("\\", "/")
                     display_name = f"{user_folder}/{file}" if user_folder else file
 
-                    col1, col2, col3, col4 = st.columns([2, 3, 3, 1])
+                    col1, col2, col3, col4, col5 = st.columns([2, 3, 3, 1, 2])
 
                     with col1:
                         y, sr = librosa.load(path, sr=None)
@@ -332,6 +332,28 @@ elif auth_status:
                             os.remove(path)
                             st.warning(f"Deleted {display_name}")
                             st.rerun()
+
+                    with col5:
+                        rename_key = f"rename_{folder}_{user_folder}_{file}"
+                        if st.button("✏️ Rename", key=rename_key):
+                            st.session_state[rename_key + "_show"] = True
+                        if st.session_state.get(rename_key + "_show", False):
+                            new_name = st.text_input("New file name (include .mp3)", value=file, key=rename_key + "_input")
+                            if st.button("Xác nhận đổi tên", key=rename_key + "_confirm"):
+                                # Đường dẫn mới
+                                if user_folder:
+                                    new_path = os.path.join(base_path, user_folder, new_name)
+                                else:
+                                    new_path = os.path.join(base_path, new_name)
+                                if not os.path.exists(new_path):
+                                    os.rename(path, new_path)
+                                    st.success(f"Đã đổi tên thành {new_name}")
+                                    st.session_state[rename_key + "_show"] = False
+                                    st.rerun()
+                                else:
+                                    st.error("Tên file đã tồn tại!")
+                            if st.button("Huỷ", key=rename_key + "_cancel"):
+                                st.session_state[rename_key + "_show"] = False
 
                     st.markdown("---")
 
